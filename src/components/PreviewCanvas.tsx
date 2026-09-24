@@ -17,11 +17,18 @@ import { generateStandaloneHtml } from "../utils/exportHelper";
 interface PreviewCanvasProps {
   htmlContent: string;
   title: string;
+  isMobileContainer?: boolean;
+  onToggleMobile?: () => void;
 }
 
 type CanvasBg = "light" | "white" | "dark" | "checkerboard";
 
-export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ htmlContent, title }) => {
+export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({
+  htmlContent,
+  title,
+  isMobileContainer = false,
+  onToggleMobile,
+}) => {
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [customWidth, setCustomWidth] = useState<number>(1024);
   const [canvasBg, setCanvasBg] = useState<CanvasBg>("light");
@@ -60,6 +67,39 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ htmlContent, title
   };
 
   const iframeSrcDoc = generateStandaloneHtml(htmlContent, title);
+
+  // If wrapped in dedicated mobile container, render streamlined phone browser view
+  if (isMobileContainer) {
+    return (
+      <div className="flex-1 w-full h-full flex flex-col bg-white overflow-hidden select-none">
+        {/* Mobile Browser Address Bar */}
+        <div className="bg-slate-100 border-b border-slate-200 px-3 py-1.5 flex items-center justify-between text-xs text-slate-500 shrink-0">
+          <div className="flex items-center gap-1.5 flex-1 min-w-0 bg-white px-2.5 py-1 rounded-full text-[11px] font-mono text-slate-600 border border-slate-200 shadow-2xs max-w-[240px] mx-auto truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span className="truncate">mobile.preview/{title ? title.toLowerCase().replace(/[^a-z0-9]/g, "-") : "layout"}</span>
+          </div>
+          <button
+            onClick={() => setKey((k) => k + 1)}
+            className="p-1 text-slate-400 hover:text-slate-700 rounded-md transition-colors ml-1"
+            title="Reload Preview"
+            aria-label="Reload Preview"
+          >
+            <RefreshCw className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Iframe Viewport inside Phone */}
+        <iframe
+          key={key}
+          ref={iframeRef}
+          srcDoc={iframeSrcDoc}
+          title={title || "Mobile Preview"}
+          sandbox="allow-scripts allow-modals allow-forms"
+          className="w-full flex-1 bg-white border-0 min-h-0"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-100 overflow-hidden">
@@ -105,6 +145,17 @@ export const PreviewCanvas: React.FC<PreviewCanvasProps> = ({ htmlContent, title
             <Smartphone className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Mobile (375px)</span>
           </button>
+
+          {onToggleMobile && (
+            <button
+              onClick={onToggleMobile}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-indigo-600 hover:bg-indigo-50 border border-indigo-200/80 shadow-2xs"
+              title="Wrap in Mobile Hardware Device Container"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Device Frame</span>
+            </button>
+          )}
 
           <button
             onClick={() => setDeviceMode("custom")}
