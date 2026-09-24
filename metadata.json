@@ -1,0 +1,6 @@
+{
+  "name": "Gemini UI Layout & Component Generator",
+  "description": "Generate responsive web layouts and UI components from natural language prompts with live responsive preview and code export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
